@@ -4,8 +4,10 @@ import { AlarmClock, BedDouble, Clock3, Moon, Sparkles, TimerReset, Zap } from '
 function parseTimeToMinutes(time) {
   if (!time || typeof time !== 'string' || !time.includes(':')) return null
   const [hours, minutes] = time.split(':').map(Number)
+
   if (!Number.isInteger(hours) || !Number.isInteger(minutes)) return null
   if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null
+
   return hours * 60 + minutes
 }
 
@@ -25,8 +27,10 @@ function addMinutes(time, minutesToAdd) {
 function durationLabel(totalMinutes) {
   const hours = Math.floor(totalMinutes / 60)
   const minutes = totalMinutes % 60
+
   if (hours === 0) return `${minutes} min`
   if (minutes === 0) return `${hours}h`
+
   return `${hours}h${String(minutes).padStart(2, '0')}`
 }
 
@@ -66,18 +70,24 @@ export default function App() {
   const parsedFallAsleep = Math.max(0, Math.min(180, Number(fallAsleepMinutes) || 0))
   const parsedCycleLength = Number(cycleLength) === 50 ? 50 : 90
   const totalRows = parsedCycleLength === 50 ? 10 : 6
-  const minimumFunctionalSleepMinutes = 330
+
+  const minimumFunctionalSleepMinutes = 330 // ~5h30
+  const idealSleepMinutes = 450 // ~7h30
+
   const fastCycle = Math.max(1, Math.ceil(minimumFunctionalSleepMinutes / parsedCycleLength))
-  const idealSleepMinutes = 450
   const bestCycle = Math.max(1, Math.round(idealSleepMinutes / parsedCycleLength))
   const recoveryCycle = totalRows
 
-  const sleepStart = useMemo(() => addMinutes(currentTime, parsedFallAsleep), [currentTime, parsedFallAsleep])
+  const sleepStart = useMemo(
+    () => addMinutes(currentTime, parsedFallAsleep),
+    [currentTime, parsedFallAsleep]
+  )
 
   const rows = useMemo(() => {
     return Array.from({ length: totalRows }, (_, index) => {
       const cycles = index + 1
       const sleptMinutes = cycles * parsedCycleLength
+
       return {
         cycles,
         wakeTime: addMinutes(sleepStart, sleptMinutes),
@@ -98,8 +108,12 @@ export default function App() {
       return null
     }
 
+    // Se a meta for menor que o horário em que o sono começa,
+    // interpretamos como horário do dia seguinte.
     const targetAbsoluteMinutes =
-      targetClockMinutes < sleepStartClockMinutes ? targetClockMinutes + 1440 : targetClockMinutes
+      targetClockMinutes < sleepStartClockMinutes
+        ? targetClockMinutes + 1440
+        : targetClockMinutes
 
     const rowsWithAbsoluteMinutes = rows
       .map((row) => {
@@ -107,12 +121,18 @@ export default function App() {
         if (wakeClockMinutes === null) return null
 
         const wakeAbsoluteMinutes =
-          wakeClockMinutes < sleepStartClockMinutes ? wakeClockMinutes + 1440 : wakeClockMinutes
+          wakeClockMinutes < sleepStartClockMinutes
+            ? wakeClockMinutes + 1440
+            : wakeClockMinutes
 
-        return { ...row, wakeAbsoluteMinutes }
+        return {
+          ...row,
+          wakeAbsoluteMinutes,
+        }
       })
       .filter(Boolean)
 
+    // Prioriza a opção mais próxima sem ultrapassar a meta
     const validRows = rowsWithAbsoluteMinutes.filter(
       (row) => row.wakeAbsoluteMinutes <= targetAbsoluteMinutes
     )
@@ -125,6 +145,7 @@ export default function App() {
       })
     }
 
+    // Se todas as opções ultrapassarem a meta, retorna a menor ultrapassagem
     return rowsWithAbsoluteMinutes.reduce((best, row) => {
       const bestDiff = Math.abs(best.wakeAbsoluteMinutes - targetAbsoluteMinutes)
       const currentDiff = Math.abs(row.wakeAbsoluteMinutes - targetAbsoluteMinutes)
@@ -152,7 +173,8 @@ export default function App() {
               <div>
                 <h1>Calculadora Premium de Sono</h1>
                 <p>
-                  Escolha entre ciclos de 50 ou 90 minutos, defina o tempo para adormecer e veja o horário mais estratégico para despertar.
+                  Escolha entre ciclos de 50 ou 90 minutos, defina o tempo para adormecer e veja o
+                  horário mais estratégico para despertar.
                 </p>
               </div>
             </div>
@@ -200,8 +222,14 @@ export default function App() {
             <div className="form-grid">
               <div className="field">
                 <label htmlFor="currentTime">Hora atual</label>
-                <input id="currentTime" type="time" value={currentTime} onChange={(e) => setCurrentTime(e.target.value)} />
+                <input
+                  id="currentTime"
+                  type="time"
+                  value={currentTime}
+                  onChange={(e) => setCurrentTime(e.target.value)}
+                />
               </div>
+
               <div className="field">
                 <label htmlFor="fallAsleepMinutes">Minutos para dormir</label>
                 <input
@@ -212,16 +240,27 @@ export default function App() {
                   placeholder="20"
                 />
               </div>
+
               <div className="field">
                 <label htmlFor="targetWake">Meta de despertar</label>
-                <input id="targetWake" type="time" value={targetWake} onChange={(e) => setTargetWake(e.target.value)} />
+                <input
+                  id="targetWake"
+                  type="time"
+                  value={targetWake}
+                  onChange={(e) => setTargetWake(e.target.value)}
+                />
               </div>
             </div>
 
             <div className="button-row">
-              <button className="btn btn-primary" onClick={() => setCurrentTime(getCurrentTimeString())} type="button">
+              <button
+                className="btn btn-primary"
+                onClick={() => setCurrentTime(getCurrentTimeString())}
+                type="button"
+              >
                 Usar horário atual
               </button>
+
               <button className="btn btn-secondary" onClick={resetContextual} type="button">
                 Limpar dados
               </button>
@@ -239,7 +278,11 @@ export default function App() {
               icon={priority === 'tempo' ? <TimerReset size={20} /> : <Zap size={20} />}
               label="Recomendado para você hoje"
               value={recommendedRow?.wakeTime ?? '--:--'}
-              description={recommendedRow ? `${priority === 'tempo' ? 'Mais rápido' : 'Melhor escolha'} • ${recommendedRow.cycles} ciclos de ${parsedCycleLength} min • ${recommendedRow.hoursSlept} de sono` : 'Preencha os campos para calcular'}
+              description={
+                recommendedRow
+                  ? `${priority === 'tempo' ? 'Mais rápido' : 'Melhor escolha'} • ${recommendedRow.cycles} ciclos de ${parsedCycleLength} min • ${recommendedRow.hoursSlept} de sono`
+                  : 'Preencha os campos para calcular'
+              }
               highlight
             />
 
@@ -247,7 +290,11 @@ export default function App() {
               icon={<AlarmClock size={20} />}
               label="Mais próximo da meta informada"
               value={closestToTarget?.wakeTime ?? '--:--'}
-              description={closestToTarget ? `${closestToTarget.cycles} ciclos de ${parsedCycleLength} min • ${closestToTarget.hoursSlept} de sono` : 'Informe uma meta de despertar para comparar'}
+              description={
+                closestToTarget
+                  ? `${closestToTarget.cycles} ciclos de ${parsedCycleLength} min • ${closestToTarget.hoursSlept} de sono`
+                  : 'Informe uma meta de despertar para comparar'
+              }
             />
           </div>
         </div>
@@ -257,13 +304,21 @@ export default function App() {
             <div>
               <h2>Tabela de ciclos</h2>
               <p>
-                Horário estimado de acordar e quantidade total de sono conforme o ciclo selecionado e o tempo para adormecer informado.
+                Horário estimado de acordar e quantidade total de sono conforme o ciclo selecionado e
+                o tempo para adormecer informado.
               </p>
             </div>
+
             <div className="badge-wrap">
-              <Badge tone="amber">Mais rápido = {durationLabel(fastCycle * parsedCycleLength)}</Badge>
-              <Badge tone="emerald">Melhor escolha = {durationLabel(bestCycle * parsedCycleLength)}</Badge>
-              <Badge tone="violet">Recuperação total = {durationLabel(recoveryCycle * parsedCycleLength)}</Badge>
+              <Badge tone="amber">
+                Mais rápido = {durationLabel(fastCycle * parsedCycleLength)}
+              </Badge>
+              <Badge tone="emerald">
+                Melhor escolha = {durationLabel(bestCycle * parsedCycleLength)}
+              </Badge>
+              <Badge tone="violet">
+                Recuperação total = {durationLabel(recoveryCycle * parsedCycleLength)}
+              </Badge>
             </div>
           </div>
 
@@ -277,6 +332,7 @@ export default function App() {
                   <th>Recomendação</th>
                 </tr>
               </thead>
+
               <tbody>
                 {rows.map((row) => {
                   const isFast = row.cycles === fastCycle
@@ -297,6 +353,7 @@ export default function App() {
                           {isRecovery && <Badge tone="violet">Recuperação total</Badge>}
                           {isClosest && <Badge tone="cyan">Mais próximo da meta</Badge>}
                           {isRecommended && <Badge>Recomendado para hoje</Badge>}
+
                           {!isFast && !isBest && !isRecovery && !isClosest && !isRecommended && (
                             <span className="muted">Opção intermediária</span>
                           )}
@@ -312,21 +369,35 @@ export default function App() {
 
         <div className="tips-grid">
           <Panel>
-            <h3><TimerReset size={18} /> Mais rápido</h3>
+            <h3>
+              <TimerReset size={18} /> Mais rápido
+            </h3>
             <p>
-              Com o ciclo atual de {parsedCycleLength} min, a sugestão mais rápida usa {fastCycle} ciclos e corresponde a aproximadamente {durationLabel(fastCycle * parsedCycleLength)}.
+              Com o ciclo atual de {parsedCycleLength} min, a sugestão mais rápida usa {fastCycle}{' '}
+              ciclos e corresponde a aproximadamente{' '}
+              {durationLabel(fastCycle * parsedCycleLength)}.
             </p>
           </Panel>
+
           <Panel>
-            <h3><Sparkles size={18} /> Melhor escolha</h3>
+            <h3>
+              <Sparkles size={18} /> Melhor escolha
+            </h3>
             <p>
-              Com o ciclo atual de {parsedCycleLength} min, {bestCycle} ciclos correspondem a aproximadamente {durationLabel(bestCycle * parsedCycleLength)}. Em geral, é o melhor equilíbrio entre rotina e recuperação.
+              Com o ciclo atual de {parsedCycleLength} min, {bestCycle} ciclos correspondem a
+              aproximadamente {durationLabel(bestCycle * parsedCycleLength)}. Em geral, é o melhor
+              equilíbrio entre rotina e recuperação.
             </p>
           </Panel>
+
           <Panel>
-            <h3><Clock3 size={18} /> Recuperação total</h3>
+            <h3>
+              <Clock3 size={18} /> Recuperação total
+            </h3>
             <p>
-              Com o ciclo atual de {parsedCycleLength} min, {recoveryCycle} ciclos correspondem a aproximadamente {durationLabel(recoveryCycle * parsedCycleLength)}. Ideal para a maior janela de descanso dentro da tabela.
+              Com o ciclo atual de {parsedCycleLength} min, {recoveryCycle} ciclos correspondem a
+              aproximadamente {durationLabel(recoveryCycle * parsedCycleLength)}. Ideal para a maior
+              janela de descanso dentro da tabela.
             </p>
           </Panel>
         </div>
