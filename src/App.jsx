@@ -1,407 +1,439 @@
-import { useMemo, useState } from 'react'
-import { AlarmClock, BedDouble, Clock3, Moon, Sparkles, TimerReset, Zap } from 'lucide-react'
+import React, { useMemo, useState } from "react";
+import { Moon, AlarmClock, Sparkles, BedDouble, Clock3, Zap, TimerReset } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 function parseTimeToMinutes(time) {
-  if (!time || typeof time !== 'string' || !time.includes(':')) return null
-  const [hours, minutes] = time.split(':').map(Number)
-
-  if (!Number.isInteger(hours) || !Number.isInteger(minutes)) return null
-  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null
-
-  return hours * 60 + minutes
+  if (!time || typeof time !== "string" || !time.includes(":")) return null;
+  const [h, m] = time.split(":").map(Number);
+  if (!Number.isInteger(h) || !Number.isInteger(m)) return null;
+  if (h < 0 || h > 23 || m < 0 || m > 59) return null;
+  return h * 60 + m;
 }
 
 function minutesToTime(totalMinutes) {
-  const normalized = ((totalMinutes % 1440) + 1440) % 1440
-  const hours = String(Math.floor(normalized / 60)).padStart(2, '0')
-  const minutes = String(normalized % 60).padStart(2, '0')
-  return `${hours}:${minutes}`
+  const normalized = ((totalMinutes % 1440) + 1440) % 1440;
+  const hours = Math.floor(normalized / 60)
+    .toString()
+    .padStart(2, "0");
+  const minutes = (normalized % 60).toString().padStart(2, "0");
+  return `${hours}:${minutes}`;
 }
 
 function addMinutes(time, minutesToAdd) {
-  const base = parseTimeToMinutes(time)
-  if (base === null) return '--:--'
-  return minutesToTime(base + minutesToAdd)
+  const baseMinutes = parseTimeToMinutes(time);
+  if (baseMinutes === null) return "--:--";
+  return minutesToTime(baseMinutes + minutesToAdd);
 }
 
 function durationLabel(totalMinutes) {
-  const hours = Math.floor(totalMinutes / 60)
-  const minutes = totalMinutes % 60
-
-  if (hours === 0) return `${minutes} min`
-  if (minutes === 0) return `${hours}h`
-
-  return `${hours}h${String(minutes).padStart(2, '0')}`
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  if (h === 0) return `${m} min`;
+if (m === 0) return `${h}h`;
+  return `${h}h${m.toString().padStart(2, "0")}`;
 }
 
 function getCurrentTimeString() {
-  const now = new Date()
-  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  const now = new Date();
+  return `${now.getHours().toString().padStart(2, "0")}:${now
+    .getMinutes()
+    .toString()
+    .padStart(2, "0")}`;
 }
 
-function Badge({ children, tone = 'default' }) {
-  return <span className={`badge badge-${tone}`}>{children}</span>
-}
+export default function SleepCyclePremiumApp() {
+  const [currentTime, setCurrentTime] = useState(getCurrentTimeString());
+  const [fallAsleepMinutes, setFallAsleepMinutes] = useState("20");
+  const [targetWake, setTargetWake] = useState("06:30");
+  const [cycleLength, setCycleLength] = useState("90");
+  const [priority, setPriority] = useState("energia");
 
-function Panel({ children, className = '' }) {
-  return <section className={`panel ${className}`.trim()}>{children}</section>
-}
-
-function InfoCard({ icon, label, value, description, highlight = false }) {
-  return (
-    <Panel className={highlight ? 'panel-highlight' : ''}>
-      <div className="info-label">{label}</div>
-      <div className="info-value">
-        {icon}
-        <span>{value}</span>
-      </div>
-      {description ? <p className="info-description">{description}</p> : null}
-    </Panel>
-  )
-}
-
-export default function App() {
-  const [currentTime, setCurrentTime] = useState(getCurrentTimeString())
-  const [fallAsleepMinutes, setFallAsleepMinutes] = useState('20')
-  const [targetWake, setTargetWake] = useState('06:30')
-  const [cycleLength, setCycleLength] = useState('90')
-  const [priority, setPriority] = useState('energia')
-
-  const parsedFallAsleep = Math.max(0, Math.min(180, Number(fallAsleepMinutes) || 0))
-  const parsedCycleLength = Number(cycleLength) === 50 ? 50 : 90
-  const totalRows = parsedCycleLength === 50 ? 10 : 6
-
-  const minimumFunctionalSleepMinutes = 330 // ~5h30
-  const idealSleepMinutes = 450 // ~7h30
-
-  const fastCycle = Math.max(1, Math.ceil(minimumFunctionalSleepMinutes / parsedCycleLength))
-  const bestCycle = Math.max(1, Math.round(idealSleepMinutes / parsedCycleLength))
-  const recoveryCycle = totalRows
+  const parsedFallAsleep = Math.max(0, Math.min(180, Number(fallAsleepMinutes) || 0));
+  const parsedCycleLength = Number(cycleLength) === 50 ? 50 : 90;
+  const totalRows = parsedCycleLength === 50 ? 10 : 6;
+  const recoveryCycle = parsedCycleLength === 50 ? 10 : 6;
+  const minimumFunctionalSleepMinutes = 330;
+  const fastCycle = Math.max(1, Math.ceil(minimumFunctionalSleepMinutes / parsedCycleLength));
+  const idealSleepMinutes = 450; // ~7h30
+  const bestCycle = Math.max(1, Math.round(idealSleepMinutes / parsedCycleLength));
 
   const sleepStart = useMemo(
     () => addMinutes(currentTime, parsedFallAsleep),
     [currentTime, parsedFallAsleep]
-  )
+  );
 
   const rows = useMemo(() => {
-    return Array.from({ length: totalRows }, (_, index) => {
-      const cycles = index + 1
-      const sleptMinutes = cycles * parsedCycleLength
-
+    return Array.from({ length: totalRows }, (_, i) => {
+      const cycles = i + 1;
+      const sleptMinutes = cycles * parsedCycleLength;
       return {
         cycles,
         wakeTime: addMinutes(sleepStart, sleptMinutes),
         hoursSlept: durationLabel(sleptMinutes),
-      }
-    })
-  }, [sleepStart, parsedCycleLength, totalRows])
+      };
+    });
+  }, [sleepStart, parsedCycleLength, totalRows]);
 
-  const fastestOption = rows.find((row) => row.cycles === fastCycle) ?? rows[0] ?? null
-  const bestBalanced = rows.find((row) => row.cycles === bestCycle) ?? rows[0] ?? null
-  const recoveryOption = rows.find((row) => row.cycles === recoveryCycle) ?? rows[rows.length - 1] ?? null
+  const fastestOption = rows.find((r) => r.cycles === fastCycle) ?? rows[0] ?? null;
+  const bestBalanced = rows.find((r) => r.cycles === bestCycle) ?? rows[0] ?? null;
+  const recoveryOption = rows.find((r) => r.cycles === recoveryCycle) ?? rows[rows.length - 1] ?? null;
 
   const closestToTarget = useMemo(() => {
-    const targetClockMinutes = parseTimeToMinutes(targetWake)
-    const sleepStartClockMinutes = parseTimeToMinutes(sleepStart)
+    const targetClockMinutes = parseTimeToMinutes(targetWake);
+    const sleepStartClockMinutes = parseTimeToMinutes(sleepStart);
 
     if (targetClockMinutes === null || sleepStartClockMinutes === null || rows.length === 0) {
-      return null
+      return null;
     }
 
-    // Se a meta for menor que o horário em que o sono começa,
-    // interpretamos como horário do dia seguinte.
+    // Se a meta for menor que o horário em que o sono começa, interpretamos como horário do dia seguinte.
     const targetAbsoluteMinutes =
       targetClockMinutes < sleepStartClockMinutes
         ? targetClockMinutes + 1440
-        : targetClockMinutes
+        : targetClockMinutes;
 
     const rowsWithAbsoluteMinutes = rows
       .map((row) => {
-        const wakeClockMinutes = parseTimeToMinutes(row.wakeTime)
-        if (wakeClockMinutes === null) return null
+        const wakeClockMinutes = parseTimeToMinutes(row.wakeTime);
+        if (wakeClockMinutes === null) return null;
 
         const wakeAbsoluteMinutes =
           wakeClockMinutes < sleepStartClockMinutes
             ? wakeClockMinutes + 1440
-            : wakeClockMinutes
+            : wakeClockMinutes;
 
         return {
           ...row,
           wakeAbsoluteMinutes,
-        }
+        };
       })
-      .filter(Boolean)
+      .filter(Boolean);
 
-    // Prioriza a opção mais próxima sem ultrapassar a meta
     const validRows = rowsWithAbsoluteMinutes.filter(
       (row) => row.wakeAbsoluteMinutes <= targetAbsoluteMinutes
-    )
+    );
 
     if (validRows.length > 0) {
       return validRows.reduce((best, row) => {
-        const bestDiff = targetAbsoluteMinutes - best.wakeAbsoluteMinutes
-        const currentDiff = targetAbsoluteMinutes - row.wakeAbsoluteMinutes
-        return currentDiff < bestDiff ? row : best
-      })
+        const bestDiff = targetAbsoluteMinutes - best.wakeAbsoluteMinutes;
+        const currentDiff = targetAbsoluteMinutes - row.wakeAbsoluteMinutes;
+        return currentDiff < bestDiff ? row : best;
+      });
     }
 
-    // Se todas as opções ultrapassarem a meta, retorna a menor ultrapassagem
+    // Se todas as opções ultrapassarem a meta, retorna a menor ultrapassagem.
     return rowsWithAbsoluteMinutes.reduce((best, row) => {
-      const bestDiff = Math.abs(best.wakeAbsoluteMinutes - targetAbsoluteMinutes)
-      const currentDiff = Math.abs(row.wakeAbsoluteMinutes - targetAbsoluteMinutes)
-      return currentDiff < bestDiff ? row : best
-    })
-  }, [rows, targetWake, sleepStart])
+      const bestDiff = Math.abs(best.wakeAbsoluteMinutes - targetAbsoluteMinutes);
+      const currentDiff = Math.abs(row.wakeAbsoluteMinutes - targetAbsoluteMinutes);
+      return currentDiff < bestDiff ? row : best;
+    });
+  }, [rows, targetWake, sleepStart]);
 
-  const recommendedRow = priority === 'tempo' ? fastestOption : bestBalanced
+  const recommendedRow = priority === "tempo" ? fastestOption : bestBalanced;
 
+  const fastCycleDuration = durationLabel(fastCycle * parsedCycleLength);
+  const bestCycleDuration = durationLabel(bestCycle * parsedCycleLength);
+  const recoveryCycleDuration = durationLabel(recoveryCycle * parsedCycleLength);
+
+  // Reset contextual: limpa apenas dados de entrada, mantém preferências (prioridade e duração do ciclo)
   const resetContextual = () => {
-    setCurrentTime('')
-    setFallAsleepMinutes('20')
-    setTargetWake('')
-  }
+    setCurrentTime("");
+    setFallAsleepMinutes("20");
+    setTargetWake("");
+  };
 
   return (
-    <div className="app-shell">
-      <div className="container">
-        <div className="hero-grid">
-          <Panel className="hero-panel">
-            <div className="hero-head">
-              <div className="hero-icon-wrap">
-                <Moon size={26} />
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 lg:py-12">
+        <div className="mb-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 p-6 shadow-2xl lg:p-8">
+            <div className="mb-6 flex items-center gap-3">
+              <div className="rounded-2xl bg-white/10 p-3">
+                <Moon className="h-6 w-6" />
               </div>
               <div>
-                <h1>Calculadora Premium de Sono</h1>
-                <p>
-                  Escolha entre ciclos de 50 ou 90 minutos, defina o tempo para adormecer e veja o
-                  horário mais estratégico para despertar.
+                <h1 className="text-2xl font-semibold tracking-tight md:text-4xl">
+                  Calculadora Premium de Sono
+                </h1>
+                <p className="mt-1 text-sm text-slate-300 md:text-base">
+                  Escolha entre ciclos de 50 ou 90 minutos, defina o tempo para adormecer e veja o horário mais estratégico para despertar.
                 </p>
               </div>
             </div>
 
-            <div className="control-block">
-              <label className="section-label">Qual sua prioridade hoje?</label>
-              <div className="toggle-row">
-                <button
-                  className={`toggle ${priority === 'tempo' ? 'active amber' : ''}`}
-                  onClick={() => setPriority('tempo')}
-                  type="button"
+            <div className="mb-4 space-y-2">
+              <Label>Qual sua prioridade hoje?</Label>
+              <ToggleGroup
+                type="single"
+                value={priority}
+                onValueChange={(value) => value && setPriority(value)}
+                className="justify-start"
+              >
+                <ToggleGroupItem
+                  value="tempo"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-5 py-2 text-slate-100 data-[state=on]:bg-amber-500/20 data-[state=on]:text-amber-100"
                 >
                   ⏱️ Tempo
-                </button>
-                <button
-                  className={`toggle ${priority === 'energia' ? 'active emerald' : ''}`}
-                  onClick={() => setPriority('energia')}
-                  type="button"
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value="energia"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-5 py-2 text-slate-100 data-[state=on]:bg-emerald-500/20 data-[state=on]:text-emerald-100"
                 >
                   ⚡ Energia
-                </button>
-              </div>
+                </ToggleGroupItem>
+              </ToggleGroup>
             </div>
 
-            <div className="control-block">
-              <label className="section-label">Duração do ciclo</label>
-              <div className="toggle-row">
-                <button
-                  className={`toggle ${cycleLength === '50' ? 'active cyan' : ''}`}
-                  onClick={() => setCycleLength('50')}
-                  type="button"
+            <div className="mb-4 space-y-2">
+              <Label>Duração do ciclo</Label>
+              <ToggleGroup
+                type="single"
+                value={cycleLength}
+                onValueChange={(value) => value && setCycleLength(value)}
+                className="justify-start"
+              >
+                <ToggleGroupItem
+                  value="50"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-5 py-2 text-slate-100 data-[state=on]:bg-cyan-500/20 data-[state=on]:text-cyan-100"
                 >
                   50 min
-                </button>
-                <button
-                  className={`toggle ${cycleLength === '90' ? 'active emerald' : ''}`}
-                  onClick={() => setCycleLength('90')}
-                  type="button"
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value="90"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-5 py-2 text-slate-100 data-[state=on]:bg-emerald-500/20 data-[state=on]:text-emerald-100"
                 >
                   90 min
-                </button>
-              </div>
+                </ToggleGroupItem>
+              </ToggleGroup>
             </div>
 
-            <div className="form-grid">
-              <div className="field">
-                <label htmlFor="currentTime">Hora atual</label>
-                <input
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="currentTime">Hora atual</Label>
+                <Input
                   id="currentTime"
                   type="time"
                   value={currentTime}
                   onChange={(e) => setCurrentTime(e.target.value)}
+                  className="h-12 rounded-2xl border-white/10 bg-white/5 text-base [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:opacity-100"
                 />
               </div>
 
-              <div className="field">
-                <label htmlFor="fallAsleepMinutes">Minutos para dormir</label>
-                <input
-                  id="fallAsleepMinutes"
+              <div className="space-y-2">
+                <Label htmlFor="fallAsleep">Minutos para dormir</Label>
+                <Input
+                  id="fallAsleep"
                   inputMode="numeric"
                   value={fallAsleepMinutes}
-                  onChange={(e) => setFallAsleepMinutes(e.target.value.replace(/\D/g, ''))}
-                  placeholder="20"
+                  onChange={(e) => {
+                    const sanitized = e.target.value.replace(/\D/g, "");
+                    setFallAsleepMinutes(sanitized);
+                  }}
+                  className="h-12 rounded-2xl border-white/10 bg-white/5 text-base [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:opacity-100"
                 />
               </div>
 
-              <div className="field">
-                <label htmlFor="targetWake">Meta de despertar</label>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="targetWake">Meta de despertar</Label>
+                <Input
                   id="targetWake"
                   type="time"
                   value={targetWake}
                   onChange={(e) => setTargetWake(e.target.value)}
+                  className="h-12 rounded-2xl border-white/10 bg-white/5 text-base [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:opacity-100"
                 />
               </div>
             </div>
 
-            <div className="button-row">
-              <button
-                className="btn btn-primary"
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button
                 onClick={() => setCurrentTime(getCurrentTimeString())}
-                type="button"
+                className="rounded-2xl"
               >
                 Usar horário atual
-              </button>
-
-              <button className="btn btn-secondary" onClick={resetContextual} type="button">
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={resetContextual}
+                className="rounded-2xl"
+              >
                 Limpar dados
-              </button>
+              </Button>
             </div>
-          </Panel>
+          </div>
 
-          <div className="side-grid">
-            <InfoCard
-              icon={<BedDouble size={22} />}
-              label="Início estimado do sono"
-              value={sleepStart}
-            />
+          <div className="grid gap-4">
+            <Card className="rounded-3xl border-white/10 bg-white/5 shadow-xl">
+              <CardHeader>
+                <CardDescription>Início estimado do sono</CardDescription>
+                <CardTitle className="flex items-center gap-2 text-3xl text-slate-100">
+                  <BedDouble className="h-6 w-6" /> {sleepStart}
+                </CardTitle>
+              </CardHeader>
+            </Card>
 
-            <InfoCard
-              icon={priority === 'tempo' ? <TimerReset size={20} /> : <Zap size={20} />}
-              label="Recomendado para você hoje"
-              value={recommendedRow?.wakeTime ?? '--:--'}
-              description={
-                recommendedRow
-                  ? `${priority === 'tempo' ? 'Mais rápido' : 'Melhor escolha'} • ${recommendedRow.cycles} ciclos de ${parsedCycleLength} min • ${recommendedRow.hoursSlept} de sono`
-                  : 'Preencha os campos para calcular'
-              }
-              highlight
-            />
+            <Card className="rounded-3xl border-white/10 bg-white/5 shadow-xl ring-1 ring-emerald-400/20">
+              <CardHeader>
+                <CardDescription>Recomendado para você hoje</CardDescription>
+                <CardTitle className="flex items-center gap-2 text-2xl text-slate-100">
+                  {priority === "tempo" ? <TimerReset className="h-5 w-5" /> : <Zap className="h-5 w-5" />} {recommendedRow?.wakeTime ?? "--:--"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-slate-300">
+                  {recommendedRow
+                    ? `${priority === "tempo" ? "Mais rápido" : "Melhor escolha"} • ${recommendedRow.cycles} ciclos de ${parsedCycleLength} min • ${recommendedRow.hoursSlept} de sono`
+                    : "Preencha os campos para calcular"}
+                </p>
+              </CardContent>
+            </Card>
 
-            <InfoCard
-              icon={<AlarmClock size={20} />}
-              label="Mais próximo da meta informada"
-              value={closestToTarget?.wakeTime ?? '--:--'}
-              description={
-                closestToTarget
-                  ? `${closestToTarget.cycles} ciclos de ${parsedCycleLength} min • ${closestToTarget.hoursSlept} de sono`
-                  : 'Informe uma meta de despertar para comparar'
-              }
-            />
+            <Card className="rounded-3xl border-white/10 bg-white/5 shadow-xl">
+              <CardHeader>
+                <CardDescription>Mais próximo da meta informada</CardDescription>
+                <CardTitle className="flex items-center gap-2 text-2xl text-slate-100">
+                  <AlarmClock className="h-5 w-5" /> {closestToTarget?.wakeTime ?? "--:--"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-slate-300">
+                  {closestToTarget ? `${closestToTarget.cycles} ciclos de ${parsedCycleLength} min • ${closestToTarget.hoursSlept} de sono` : "Informe uma meta de despertar para comparar"}
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
-        <Panel>
-          <div className="table-head">
+        <Card className="rounded-3xl border-white/10 bg-white/5 shadow-2xl">
+          <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2>Tabela de ciclos</h2>
-              <p>
-                Horário estimado de acordar e quantidade total de sono conforme o ciclo selecionado e
-                o tempo para adormecer informado.
-              </p>
+              <CardTitle className="text-2xl text-slate-100">Tabela de ciclos</CardTitle>
+              <CardDescription>
+                Horário estimado de acordar + quantidade total de sono conforme o ciclo selecionado e o tempo para adormecer informado.
+              </CardDescription>
             </div>
-
-            <div className="badge-wrap">
-              <Badge tone="amber">
-                Mais rápido = {durationLabel(fastCycle * parsedCycleLength)}
+            <div className="flex flex-wrap gap-2">
+              <Badge className="rounded-xl bg-amber-500/20 text-amber-200 hover:bg-amber-500/20">
+                Mais rápido = {fastCycleDuration}
               </Badge>
-              <Badge tone="emerald">
-                Melhor escolha = {durationLabel(bestCycle * parsedCycleLength)}
+              <Badge className="rounded-xl bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/20">
+                Melhor escolha = {bestCycleDuration}
               </Badge>
-              <Badge tone="violet">
-                Recuperação total = {durationLabel(recoveryCycle * parsedCycleLength)}
+              <Badge className="rounded-xl bg-violet-500/20 text-violet-200 hover:bg-violet-500/20">
+                Recuperação total = {recoveryCycleDuration}
               </Badge>
             </div>
-          </div>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-hidden rounded-2xl border border-white/10">
+              <table className="w-full border-collapse overflow-hidden text-left text-slate-100">
+                <thead className="bg-white/5 text-sm text-slate-300">
+                  <tr>
+                    <th className="px-4 py-4 font-medium">Ciclos</th>
+                    <th className="px-4 py-4 font-medium">Horário de acordar</th>
+                    <th className="px-4 py-4 font-medium">Horas dormidas</th>
+                    <th className="px-4 py-4 font-medium">Recomendação</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row) => {
+                    const isFast = row.cycles === fastCycle;
+                    const isBest = row.cycles === bestCycle;
+                    const isClosest = row.wakeTime === closestToTarget?.wakeTime;
+                    const isRecovery = row.cycles === recoveryCycle;
+                    const isRecommended = row.wakeTime === recommendedRow?.wakeTime;
 
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Ciclos</th>
-                  <th>Horário de acordar</th>
-                  <th>Horas dormidas</th>
-                  <th>Recomendação</th>
-                </tr>
-              </thead>
+                    return (
+                      <tr
+                        key={row.cycles}
+                        className={`border-t border-white/10 ${
+                          isRecommended ? "bg-white/5" : ""
+                        }`}
+                      >
+                        <td className="px-4 py-4 text-base font-medium text-slate-100">{row.cycles}</td>
+                        <td className="px-4 py-4 text-base font-semibold text-slate-100">{row.wakeTime}</td>
+                        <td className="px-4 py-4 text-base text-slate-100">{row.hoursSlept}</td>
+                        <td className="px-4 py-4">
+                          <div className="flex flex-wrap gap-2">
+                            {isFast && (
+                              <Badge className="rounded-xl bg-amber-500/20 text-amber-200 hover:bg-amber-500/20">
+                                Mais rápido
+                              </Badge>
+                            )}
+                            {isBest && (
+                              <Badge className="rounded-xl bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/20">
+                                Melhor escolha
+                              </Badge>
+                            )}
+                            {isRecovery && (
+                              <Badge className="rounded-xl bg-violet-500/20 text-violet-200 hover:bg-violet-500/20">
+                                Recuperação total
+                              </Badge>
+                            )}
+                            {isClosest && (
+                              <Badge className="rounded-xl bg-cyan-500/20 text-cyan-200 hover:bg-cyan-500/20">
+                                Mais próximo da meta
+                              </Badge>
+                            )}
+                            {isRecommended && (
+                              <Badge className="rounded-xl bg-white/10 text-slate-100 hover:bg-white/10">
+                                Recomendado para hoje
+                              </Badge>
+                            )}
+                            {!isFast && !isBest && !isClosest && !isRecovery && !isRecommended && (
+                              <span className="text-sm text-slate-400">Opção intermediária</span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
 
-              <tbody>
-                {rows.map((row) => {
-                  const isFast = row.cycles === fastCycle
-                  const isBest = row.cycles === bestCycle
-                  const isClosest = row.wakeTime === closestToTarget?.wakeTime
-                  const isRecovery = row.cycles === recoveryOption?.cycles
-                  const isRecommended = row.wakeTime === recommendedRow?.wakeTime
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <Card className="rounded-3xl border-white/10 bg-white/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg text-slate-100">
+                <TimerReset className="h-5 w-5" /> Mais rápido
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-slate-300">
+              Com o ciclo atual de {parsedCycleLength} min, a sugestão mais rápida usa {fastCycle} ciclos e corresponde a aproximadamente {fastCycleDuration}. Ideal para quando sua prioridade é ganhar tempo sem cair abaixo de uma faixa mínima mais funcional de descanso.
+            </CardContent>
+          </Card>
 
-                  return (
-                    <tr key={row.cycles} className={isRecommended ? 'row-highlight' : ''}>
-                      <td>{row.cycles}</td>
-                      <td className="strong">{row.wakeTime}</td>
-                      <td>{row.hoursSlept}</td>
-                      <td>
-                        <div className="badge-wrap inline">
-                          {isFast && <Badge tone="amber">Mais rápido</Badge>}
-                          {isBest && <Badge tone="emerald">Melhor escolha</Badge>}
-                          {isRecovery && <Badge tone="violet">Recuperação total</Badge>}
-                          {isClosest && <Badge tone="cyan">Mais próximo da meta</Badge>}
-                          {isRecommended && <Badge>Recomendado para hoje</Badge>}
+          <Card className="rounded-3xl border-white/10 bg-white/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg text-slate-100">
+                <Sparkles className="h-5 w-5" /> Melhor escolha
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-slate-300">
+              Com o ciclo atual de {parsedCycleLength} min, {bestCycle} ciclos correspondem a aproximadamente {bestCycleDuration}. Em geral, é o melhor equilíbrio entre rotina e recuperação.
+            </CardContent>
+          </Card>
 
-                          {!isFast && !isBest && !isRecovery && !isClosest && !isRecommended && (
-                            <span className="muted">Opção intermediária</span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        </Panel>
-
-        <div className="tips-grid">
-          <Panel>
-            <h3>
-              <TimerReset size={18} /> Mais rápido
-            </h3>
-            <p>
-              Com o ciclo atual de {parsedCycleLength} min, a sugestão mais rápida usa {fastCycle}{' '}
-              ciclos e corresponde a aproximadamente{' '}
-              {durationLabel(fastCycle * parsedCycleLength)}.
-            </p>
-          </Panel>
-
-          <Panel>
-            <h3>
-              <Sparkles size={18} /> Melhor escolha
-            </h3>
-            <p>
-              Com o ciclo atual de {parsedCycleLength} min, {bestCycle} ciclos correspondem a
-              aproximadamente {durationLabel(bestCycle * parsedCycleLength)}. Em geral, é o melhor
-              equilíbrio entre rotina e recuperação.
-            </p>
-          </Panel>
-
-          <Panel>
-            <h3>
-              <Clock3 size={18} /> Recuperação total
-            </h3>
-            <p>
-              Com o ciclo atual de {parsedCycleLength} min, {recoveryCycle} ciclos correspondem a
-              aproximadamente {durationLabel(recoveryCycle * parsedCycleLength)}. Ideal para a maior
-              janela de descanso dentro da tabela.
-            </p>
-          </Panel>
+          <Card className="rounded-3xl border-white/10 bg-white/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg text-slate-100">
+                <Moon className="h-5 w-5" /> Recuperação total
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-slate-300">
+              Com o ciclo atual de {parsedCycleLength} min, {recoveryCycle} ciclos correspondem a aproximadamente {recoveryCycleDuration}. Ideal para a maior janela de descanso dentro da tabela.
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
-  )
+  );
 }
