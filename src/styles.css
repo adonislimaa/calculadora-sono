@@ -463,6 +463,10 @@ td.strong {
   td {
     padding: 10px 6px;
     font-size: 0.78rem;
+    overflow: visible;
+    text-overflow: clip;
+    word-break: normal;
+    overflow-wrap: break-word;
   }
 
   thead th {
@@ -477,19 +481,12 @@ td.strong {
 
   th:first-child,
   td:first-child {
-    white-space: nowrap;
     min-width: 60px;
-  }
-
-  th,
-  td {
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   th:nth-child(1),
   td:nth-child(1) {
-    width: 12%;
+    width: 16%;
   }
 
   th:nth-child(2),
@@ -504,7 +501,7 @@ td.strong {
 
   th:nth-child(4),
   td:nth-child(4) {
-    width: 42%;
+    width: 38%;
   }
 
   .badge-wrap.inline {
@@ -554,14 +551,5 @@ td.strong {
 
   .tips-grid p {
     font-size: 0.85rem;
-  }
-}
-.container {
-  padding-bottom: 80px;
-}
-
-@media (max-width: 640px) {
-  .container {
-    padding-bottom: 120px;
   }
 }
