@@ -346,7 +346,10 @@ export default function SleepCyclePremiumApp() {
                     const isBest = row.cycles === bestCycle;
                     const isClosest = row.wakeTime === closestToTarget?.wakeTime;
                     const isRecovery = row.cycles === recoveryCycle;
-                    const isRecommended = row.wakeTime === recommendedRow?.wakeTime;
+                    const isRecommended =
+                      recommendedRow?.wakeTime && recommendedRow.wakeTime !== "--:--"
+                        ? row.wakeTime === recommendedRow.wakeTime
+                        : false;
 
                     return (
                       <tr
