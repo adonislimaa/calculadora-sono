@@ -31,6 +31,7 @@ body {
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  padding-bottom: 80px;
 }
 
 .hero-grid {
@@ -155,6 +156,7 @@ body {
   padding: 0 14px;
   font-size: 1rem;
   outline: none;
+  text-align: center;
 }
 
 .field input::placeholder {
@@ -393,6 +395,10 @@ td.strong {
     padding: 12px;
   }
 
+  .container {
+    padding-bottom: 120px;
+  }
+
   .panel {
     padding: 16px;
     border-radius: 20px;
@@ -441,6 +447,7 @@ td.strong {
     font-size: 0.95rem;
     padding: 0 12px;
     border-radius: 14px;
+    text-align: center;
   }
 
   .button-row {
@@ -465,6 +472,19 @@ td.strong {
 
   table {
     table-layout: fixed;
+    width: 100%;
+  }
+
+  th:first-child,
+  td:first-child {
+    white-space: nowrap;
+    min-width: 60px;
+  }
+
+  th,
+  td {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   th:nth-child(1),
