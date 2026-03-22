@@ -225,6 +225,7 @@ input[type="time"] {
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 12px;
+  word-break: break-word;
 }
 
 .info-description {
@@ -266,12 +267,18 @@ input[type="time"] {
 .badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   border-radius: 999px;
   padding: 8px 14px;
   font-size: 0.95rem;
+  line-height: 1.2;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.06);
   color: #e5eefc;
+  max-width: 100%;
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .badge-amber {
@@ -307,6 +314,7 @@ input[type="time"] {
 table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 thead {
@@ -317,6 +325,9 @@ th,
 td {
   text-align: left;
   padding: 18px 20px;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 thead th {
@@ -388,12 +399,113 @@ td.strong {
     border-radius: 22px;
   }
 
-  th,
-  td {
-    padding: 14px 12px;
+  .hero-head {
+    gap: 12px;
+  }
+
+  .hero-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
   }
 
   .hero-head h1 {
     font-size: 1.6rem;
+  }
+
+  .hero-head p {
+    font-size: 0.92rem;
+  }
+
+  .toggle-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .toggle {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 0.92rem;
+  }
+
+  .button-row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .table-wrap {
+    overflow: hidden;
+  }
+
+  table {
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  th,
+  td {
+    padding: 12px 8px;
+    font-size: 0.86rem;
+  }
+
+  thead th {
+    font-size: 0.84rem;
+    line-height: 1.25;
+  }
+
+  /* Larguras proporcionais para caber melhor no mobile */
+  th:nth-child(1),
+  td:nth-child(1) {
+    width: 13%;
+  }
+
+  th:nth-child(2),
+  td:nth-child(2) {
+    width: 24%;
+  }
+
+  th:nth-child(3),
+  td:nth-child(3) {
+    width: 20%;
+  }
+
+  th:nth-child(4),
+  td:nth-child(4) {
+    width: 43%;
+  }
+
+  .badge-wrap.inline {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .badge {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+    border-radius: 16px;
+    max-width: 100%;
+  }
+
+  .muted {
+    font-size: 0.8rem;
+    line-height: 1.35;
+  }
+
+  .tips-grid {
+    gap: 12px;
+  }
+
+  .tips-grid h3 {
+    font-size: 1rem;
+  }
+
+  .tips-grid p {
+    font-size: 0.92rem;
   }
 }
