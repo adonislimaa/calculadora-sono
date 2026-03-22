@@ -391,32 +391,24 @@ td.strong {
 
 @media (max-width: 640px) {
   .app-shell {
-    padding: 14px;
+    padding: 12px;
   }
 
   .panel {
-    padding: 18px;
-    border-radius: 22px;
+    padding: 16px;
+    border-radius: 20px;
   }
 
-  .hero-head {
-    gap: 12px;
-  }
-
-  .hero-icon-wrap {
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-  }
-
+  /* HEADER */
   .hero-head h1 {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
   }
 
   .hero-head p {
-    font-size: 0.92rem;
+    font-size: 0.88rem;
   }
 
+  /* BOTÕES */
   .toggle-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -424,8 +416,13 @@ td.strong {
 
   .toggle {
     width: 100%;
-    padding: 10px 12px;
-    font-size: 0.92rem;
+    padding: 9px;
+    font-size: 0.85rem;
+  }
+
+  /* FORM */
+  .form-grid {
+    grid-template-columns: 1fr;
   }
 
   .button-row {
@@ -433,39 +430,39 @@ td.strong {
     grid-template-columns: 1fr;
   }
 
-  .btn {
-    width: 100%;
-  }
-
-  .table-wrap {
-    overflow: hidden;
-  }
-
-  table {
-    table-layout: fixed;
-    width: 100%;
-  }
+  /* ===== TABELA ===== */
 
   th,
   td {
-    padding: 12px 8px;
-    font-size: 0.86rem;
+    padding: 10px 6px;
+    font-size: 0.78rem;
   }
 
   thead th {
-    font-size: 0.84rem;
-    line-height: 1.25;
+    font-size: 0.75rem;
+    line-height: 1.1;
   }
 
-  /* Larguras proporcionais para caber melhor no mobile */
+  /* CABEÇALHO MAIS CURTO */
+  th:nth-child(1)::after { content: ""; }
+  th:nth-child(2)::after { content: ""; }
+  th:nth-child(3)::after { content: ""; }
+  th:nth-child(4)::after { content: ""; }
+
+  /* FORÇA LAYOUT COMPACTO */
+  table {
+    table-layout: fixed;
+  }
+
+  /* PROPORÇÃO DAS COLUNAS */
   th:nth-child(1),
   td:nth-child(1) {
-    width: 13%;
+    width: 12%;
   }
 
   th:nth-child(2),
   td:nth-child(2) {
-    width: 24%;
+    width: 26%;
   }
 
   th:nth-child(3),
@@ -475,37 +472,60 @@ td.strong {
 
   th:nth-child(4),
   td:nth-child(4) {
-    width: 43%;
+    width: 42%;
   }
 
+  /* RECOMENDAÇÃO */
   .badge-wrap.inline {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
+    gap: 4px;
   }
 
   .badge {
-    font-size: 0.8rem;
-    padding: 6px 10px;
-    border-radius: 16px;
+    font-size: 0.72rem;
+    padding: 5px 8px;
+    border-radius: 12px;
+    width: fit-content;
     max-width: 100%;
   }
 
+  /* TEXTO INTERMEDIÁRIO */
   .muted {
-    font-size: 0.8rem;
-    line-height: 1.35;
+    font-size: 0.72rem;
+    line-height: 1.2;
   }
 
+  /* TÍTULO DA TABELA */
+  .table-head h2 {
+    font-size: 1.4rem;
+  }
+
+  .table-head p {
+    font-size: 0.85rem;
+  }
+
+  /* BADGES DO TOPO */
+  .badge-wrap {
+    gap: 6px;
+  }
+
+  .badge-wrap .badge {
+    font-size: 0.7rem;
+    padding: 5px 8px;
+  }
+
+  /* CARDS FINAIS */
   .tips-grid {
-    gap: 12px;
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 
   .tips-grid h3 {
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
 
   .tips-grid p {
-    font-size: 0.92rem;
+    font-size: 0.85rem;
   }
 }
