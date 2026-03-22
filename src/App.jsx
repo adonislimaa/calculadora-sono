@@ -33,8 +33,10 @@ function addMinutes(time, minutesToAdd) {
 function durationLabel(totalMinutes) {
   const h = Math.floor(totalMinutes / 60);
   const m = totalMinutes % 60;
+
   if (h === 0) return `${m} min`;
-if (m === 0) return `${h}h`;
+  if (m === 0) return `${h}h`;
+
   return `${h}h${m.toString().padStart(2, "0")}`;
 }
 
@@ -57,8 +59,10 @@ export default function SleepCyclePremiumApp() {
   const parsedCycleLength = Number(cycleLength) === 50 ? 50 : 90;
   const totalRows = parsedCycleLength === 50 ? 10 : 6;
   const recoveryCycle = parsedCycleLength === 50 ? 10 : 6;
+
   const minimumFunctionalSleepMinutes = 330;
   const fastCycle = Math.max(1, Math.ceil(minimumFunctionalSleepMinutes / parsedCycleLength));
+
   const idealSleepMinutes = 450; // ~7h30
   const bestCycle = Math.max(1, Math.round(idealSleepMinutes / parsedCycleLength));
 
@@ -81,7 +85,6 @@ export default function SleepCyclePremiumApp() {
 
   const fastestOption = rows.find((r) => r.cycles === fastCycle) ?? rows[0] ?? null;
   const bestBalanced = rows.find((r) => r.cycles === bestCycle) ?? rows[0] ?? null;
-  const recoveryOption = rows.find((r) => r.cycles === recoveryCycle) ?? rows[rows.length - 1] ?? null;
 
   const closestToTarget = useMemo(() => {
     const targetClockMinutes = parseTimeToMinutes(targetWake);
@@ -91,7 +94,6 @@ export default function SleepCyclePremiumApp() {
       return null;
     }
 
-    // Se a meta for menor que o horário em que o sono começa, interpretamos como horário do dia seguinte.
     const targetAbsoluteMinutes =
       targetClockMinutes < sleepStartClockMinutes
         ? targetClockMinutes + 1440
@@ -126,7 +128,6 @@ export default function SleepCyclePremiumApp() {
       });
     }
 
-    // Se todas as opções ultrapassarem a meta, retorna a menor ultrapassagem.
     return rowsWithAbsoluteMinutes.reduce((best, row) => {
       const bestDiff = Math.abs(best.wakeAbsoluteMinutes - targetAbsoluteMinutes);
       const currentDiff = Math.abs(row.wakeAbsoluteMinutes - targetAbsoluteMinutes);
@@ -134,13 +135,20 @@ export default function SleepCyclePremiumApp() {
     });
   }, [rows, targetWake, sleepStart]);
 
-  const recommendedRow = priority === "tempo" ? fastestOption : bestBalanced;
+  const hasValidInput =
+    parseTimeToMinutes(currentTime) !== null &&
+    parseTimeToMinutes(sleepStart) !== null;
+
+  const recommendedRow = hasValidInput
+    ? priority === "tempo"
+      ? fastestOption
+      : bestBalanced
+    : null;
 
   const fastCycleDuration = durationLabel(fastCycle * parsedCycleLength);
   const bestCycleDuration = durationLabel(bestCycle * parsedCycleLength);
   const recoveryCycleDuration = durationLabel(recoveryCycle * parsedCycleLength);
 
-  // Reset contextual: limpa apenas dados de entrada, mantém preferências (prioridade e duração do ciclo)
   const resetContextual = () => {
     setCurrentTime("");
     setFallAsleepMinutes("20");
@@ -234,7 +242,7 @@ export default function SleepCyclePremiumApp() {
                     const sanitized = e.target.value.replace(/\D/g, "");
                     setFallAsleepMinutes(sanitized);
                   }}
-                  className="h-12 rounded-2xl border-white/10 bg-white/5 text-base [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:opacity-100"
+                  className="h-12 rounded-2xl border-white/10 bg-white/5 text-base"
                 />
               </div>
 
@@ -281,7 +289,8 @@ export default function SleepCyclePremiumApp() {
               <CardHeader>
                 <CardDescription>Recomendado para você hoje</CardDescription>
                 <CardTitle className="flex items-center gap-2 text-2xl text-slate-100">
-                  {priority === "tempo" ? <TimerReset className="h-5 w-5" /> : <Zap className="h-5 w-5" />} {recommendedRow?.wakeTime ?? "--:--"}
+                  {priority === "tempo" ? <TimerReset className="h-5 w-5" /> : <Zap className="h-5 w-5" />}{" "}
+                  {recommendedRow?.wakeTime ?? "--:--"}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -302,7 +311,9 @@ export default function SleepCyclePremiumApp() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-slate-300">
-                  {closestToTarget ? `${closestToTarget.cycles} ciclos de ${parsedCycleLength} min • ${closestToTarget.hoursSlept} de sono` : "Informe uma meta de despertar para comparar"}
+                  {closestToTarget
+                    ? `${closestToTarget.cycles} ciclos de ${parsedCycleLength} min • ${closestToTarget.hoursSlept} de sono`
+                    : "Informe uma meta de despertar para comparar"}
                 </p>
               </CardContent>
             </Card>
@@ -329,6 +340,7 @@ export default function SleepCyclePremiumApp() {
               </Badge>
             </div>
           </CardHeader>
+
           <CardContent>
             <div className="overflow-hidden rounded-2xl border border-white/10">
               <table className="w-full border-collapse overflow-hidden text-left text-slate-100">
@@ -340,6 +352,7 @@ export default function SleepCyclePremiumApp() {
                     <th className="px-4 py-4 font-medium">Recomendação</th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {rows.map((row) => {
                     const isFast = row.cycles === fastCycle;
