@@ -439,17 +439,3 @@ export default function App() {
     </div>
   );
 }
-.container {
-  padding-bottom: 80px;
-}
-
-@media (max-width: 640px) {
-.container {
-  padding-bottom: 80px;
-}
-
-@media (max-width: 640px) {
-  .container {
-    padding-bottom: 120px;
-  }
-}
