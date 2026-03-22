@@ -189,7 +189,7 @@ export default function App() {
                 <h1>Calculadora Premium de Sono</h1>
                 <p>
                   Escolha entre ciclos de 50 ou 90 minutos, defina o tempo para
-                  adormecer e veja o horÃ¡rio mais estratÃ©gico para despertar.
+                  adormecer e veja o horário mais estratégico para despertar.
                 </p>
               </div>
             </div>
@@ -202,20 +202,20 @@ export default function App() {
                   onClick={() => setPriority("tempo")}
                   type="button"
                 >
-                  â±ï¸ Tempo
+                  ⏱️ Tempo
                 </button>
                 <button
                   className={`toggle ${priority === "energia" ? "active emerald" : ""}`}
                   onClick={() => setPriority("energia")}
                   type="button"
                 >
-                  â¡ Energia
+                  ⚡ Energia
                 </button>
               </div>
             </div>
 
             <div className="control-block">
-              <label className="section-label">DuraÃ§Ã£o do ciclo</label>
+              <label className="section-label">Duração do ciclo</label>
               <div className="toggle-row">
                 <button
                   className={`toggle ${cycleLength === "50" ? "active cyan" : ""}`}
@@ -275,7 +275,7 @@ export default function App() {
                 onClick={() => setCurrentTime(getCurrentTimeString())}
                 type="button"
               >
-                Usar horÃ¡rio atual
+                Usar horário atual
               </button>
 
               <button
@@ -290,7 +290,7 @@ export default function App() {
 
           <div className="side-grid">
             <Panel>
-              <div className="info-label">InÃ­cio estimado do sono</div>
+              <div className="info-label">Início estimado do sono</div>
               <div className="info-value">
                 <BedDouble size={22} />
                 <span>{sleepStart}</span>
@@ -298,29 +298,29 @@ export default function App() {
             </Panel>
 
             <Panel className="panel-highlight">
-              <div className="info-label">Recomendado para vocÃª hoje</div>
+              <div className="info-label">Recomendado para você hoje</div>
               <div className="info-value">
                 {priority === "tempo" ? <TimerReset size={20} /> : <Zap size={20} />}
                 <span>{recommendedRow?.wakeTime ?? "--:--"}</span>
               </div>
               <p className="info-description">
                 {recommendedRow
-                  ? `${priority === "tempo" ? "Mais rÃ¡pido" : "Melhor escolha"} â¢ ${
+                  ? `${priority === "tempo" ? "Mais rápido" : "Melhor escolha"} • ${
                       recommendedRow.cycles
-                    } ciclos de ${parsedCycleLength} min â¢ ${recommendedRow.hoursSlept} de sono`
+                    } ciclos de ${parsedCycleLength} min • ${recommendedRow.hoursSlept} de sono`
                   : "Preencha os campos para calcular"}
               </p>
             </Panel>
 
             <Panel>
-              <div className="info-label">Mais prÃ³ximo da meta informada</div>
+              <div className="info-label">Mais próximo da meta informada</div>
               <div className="info-value">
                 <AlarmClock size={20} />
                 <span>{closestToTarget?.wakeTime ?? "--:--"}</span>
               </div>
               <p className="info-description">
                 {closestToTarget
-                  ? `${closestToTarget.cycles} ciclos de ${parsedCycleLength} min â¢ ${closestToTarget.hoursSlept} de sono`
+                  ? `${closestToTarget.cycles} ciclos de ${parsedCycleLength} min • ${closestToTarget.hoursSlept} de sono`
                   : "Informe uma meta de despertar para comparar"}
               </p>
             </Panel>
@@ -332,20 +332,20 @@ export default function App() {
             <div>
               <h2>Tabela de ciclos</h2>
               <p>
-                HorÃ¡rio estimado de acordar e quantidade total de sono conforme
+                Horário estimado de acordar e quantidade total de sono conforme
                 o ciclo selecionado e o tempo para adormecer informado.
               </p>
             </div>
 
             <div className="badge-wrap">
               <Badge tone="amber">
-                Mais rÃ¡pido = {durationLabel(fastCycle * parsedCycleLength)}
+                Mais rápido = {durationLabel(fastCycle * parsedCycleLength)}
               </Badge>
               <Badge tone="emerald">
                 Melhor escolha = {durationLabel(bestCycle * parsedCycleLength)}
               </Badge>
               <Badge tone="violet">
-                RecuperaÃ§Ã£o total = {durationLabel(recoveryCycle * parsedCycleLength)}
+                Recuperação total = {durationLabel(recoveryCycle * parsedCycleLength)}
               </Badge>
             </div>
           </div>
@@ -355,9 +355,9 @@ export default function App() {
               <thead>
                 <tr>
                   <th>Ciclos</th>
-                  <th>HorÃ¡rio de acordar</th>
+                  <th>Horário de acordar</th>
                   <th>Horas dormidas</th>
-                  <th>RecomendaÃ§Ã£o</th>
+                  <th>Recomendação</th>
                 </tr>
               </thead>
               <tbody>
@@ -378,10 +378,10 @@ export default function App() {
                       <td>{row.hoursSlept}</td>
                       <td>
                         <div className="badge-wrap inline">
-                          {isFast && <Badge tone="amber">Mais rÃ¡pido</Badge>}
+                          {isFast && <Badge tone="amber">Mais rápido</Badge>}
                           {isBest && <Badge tone="emerald">Melhor escolha</Badge>}
-                          {isRecovery && <Badge tone="violet">RecuperaÃ§Ã£o total</Badge>}
-                          {isClosest && <Badge tone="cyan">Mais prÃ³ximo da meta</Badge>}
+                          {isRecovery && <Badge tone="violet">Recuperação total</Badge>}
+                          {isClosest && <Badge tone="cyan">Mais próximo da meta</Badge>}
                           {isRecommended && (
                             <Badge>
                               Recomendado
@@ -394,7 +394,7 @@ export default function App() {
                             !isRecovery &&
                             !isClosest &&
                             !isRecommended && (
-                              <span className="muted">OpÃ§Ã£o intermediÃ¡ria</span>
+                              <span className="muted">Opção intermediária</span>
                             )}
                         </div>
                       </td>
@@ -409,10 +409,10 @@ export default function App() {
         <div className="tips-grid">
           <Panel>
             <h3>
-              <TimerReset size={18} /> Mais rÃ¡pido
+              <TimerReset size={18} /> Mais rápido
             </h3>
             <p>
-              Com o ciclo atual de {parsedCycleLength} min, a sugestÃ£o mais rÃ¡pida usa{" "}
+              Com o ciclo atual de {parsedCycleLength} min, a sugestão mais rápida usa{" "}
               {fastCycle} ciclos e corresponde a aproximadamente{" "}
               {durationLabel(fastCycle * parsedCycleLength)}.
             </p>
@@ -425,13 +425,13 @@ export default function App() {
             <p>
               Com o ciclo atual de {parsedCycleLength} min, {bestCycle} ciclos
               correspondem a aproximadamente {durationLabel(bestCycle * parsedCycleLength)}.
-              Em geral, Ã© o melhor equilÃ­brio entre rotina e recuperaÃ§Ã£o.
+              Em geral, é o melhor equilíbrio entre rotina e recuperação.
             </p>
           </Panel>
 
           <Panel>
             <h3>
-              <Clock3 size={18} /> RecuperaÃ§Ã£o total
+              <Clock3 size={18} /> Recuperação total
             </h3>
             <p>
               Com o ciclo atual de {parsedCycleLength} min, {recoveryCycle} ciclos
